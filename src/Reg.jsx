@@ -289,7 +289,7 @@ export default function Reg() {
           <h1 className="title">Sign up</h1>
           <p className="subtitle">
             Already have an account?&nbsp;
-            <a href="#" className="login-link">Login here</a>
+            <a href="/">Login here</a>
           </p>
 
           <form className="form" onSubmit={handleSubmit} noValidate>
@@ -351,8 +351,8 @@ export default function Reg() {
               </div>
               <span className="chk-lbl">
                 By signing up you agree to our&nbsp;
-                <a href="#">Terms &amp; Conditions</a> and&nbsp;
-                <a href="#">Privacy Policy</a>.
+                <a href="/terms">Terms &amp; Conditions</a> and&nbsp;
+                <a href="/privacy">Privacy Policy</a>.
               </span>
             </label>
 

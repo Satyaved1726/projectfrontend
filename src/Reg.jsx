@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./App.css";
 
 function Reg() {
   const [name, setName] = useState("");
@@ -32,37 +33,35 @@ function Reg() {
   };
 
   return (
-    <div>
-      <h1>I am App</h1>
+    <div className="main-container">
+      <div className="register-card">
+        <h2>Create Account</h2>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          placeholder="Enter username"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Enter username"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
-        <br />
+          <input
+            type="email"
+            placeholder="Enter email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-        <input
-          placeholder="Enter email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+          <input
+            type="password"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-        <br />
-
-        <input
-          placeholder="Enter password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <br />
-
-        <button type="submit">Register</button>
-      </form>
+          <button type="submit">Register</button>
+        </form>
+      </div>
     </div>
   );
 }

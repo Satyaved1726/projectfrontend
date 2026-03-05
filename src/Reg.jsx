@@ -1,57 +1,69 @@
-import axios from "axios";
 import { useState } from "react";
 
 function Reg() {
-  const [data, setData] = useState({
-    username: "",
-    email: "",
-    password: ""
-  });
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const changeName = (e) => {
-    setData({ ...data, [e.target.name]: e.target.value });
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const submit = async () => {
     try {
-      const res = await axios.post(
-        "https://cabsystemsms-1.onrender.com/register",
-        data
-      );
+      const response = await fetch("https://project1-xpif.onrender.com/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: name,
+          email: email,
+          password: password
+        })
+      });
 
-      alert(res.data);
-    } catch (err) {
-      alert(err.response?.data || "Error occurred");
+      const data = await response.json();
+      console.log(data);
+
+      alert("User registered successfully");
+    } catch (error) {
+      console.error(error);
+      alert("Error registering user");
     }
   };
 
   return (
-    <>
+    <div>
       <h1>I am App</h1>
 
-      <input
-        type="text"
-        name="username"
-        placeholder="Enter username"
-        onChange={changeName}
-      />
+      <form onSubmit={handleSubmit}>
+        <input
+          placeholder="Enter username"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
 
-      <input
-        type="email"
-        name="email"
-        placeholder="Enter email"
-        onChange={changeName}
-      />
+        <br />
 
-      <input
-        type="password"
-        name="password"
-        placeholder="Enter password"
-        onChange={changeName}
-      />
+        <input
+          placeholder="Enter email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-      <button onClick={submit}>Register</button>
-    </>
+        <br />
+
+        <input
+          placeholder="Enter password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <br />
+
+        <button type="submit">Register</button>
+      </form>
+    </div>
   );
 }
 

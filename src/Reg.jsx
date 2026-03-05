@@ -9,7 +9,7 @@ function Reg() {
     e.preventDefault();
 
     try {
-      const response = await fetch("https://project1-xpif.onrender.com/users", {
+      const response = await fetch("https://project1-xpif.onrender.com/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -21,7 +21,7 @@ function Reg() {
         })
       });
 
-      const data = await response.json();
+      const data = await response.text();
       console.log(data);
 
       alert("User registered successfully");

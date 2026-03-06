@@ -1,0 +1,29 @@
+/* Admin Layout */
+.admin-sidebar {
+  background: linear-gradient(180deg, #0f172a 0%, #1e2d45 100%);
+}
+
+.nav-section {
+  list-style: none;
+  padding: 1rem 1.5rem 0.5rem !important;
+  margin: 0 !important;
+}
+
+.nav-section-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(79, 70, 229, 0.9);
+  font-weight: 700;
+}
+
+.admin-content {
+  background: #f8fafc;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav-section-label {
+    display: none;
+  }
+}

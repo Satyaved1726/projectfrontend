@@ -138,6 +138,16 @@ body {
   justify-content: center;
   animation: slideLeft 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s both;
 }
+
+/* error messages for forms */
+.error {
+  color: #d8000c;
+  background: #ffbaba;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
 @keyframes slideLeft {
   from { opacity: 0; transform: translateX(-28px); }
   to   { opacity: 1; transform: translateX(0); }

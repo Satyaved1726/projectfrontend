@@ -61,6 +61,48 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/m
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
+---
+
+## Full‑Stack Backend Setup
+
+This repository now consists of a React 18 frontend (`src/…`) and a Spring Boot
+back end located in the `backend/` folder. The stack is designed for production
+use in an enterprise anonymous reporting application.
+
+### Running Locally
+
+1. **Backend**
+   * `cd backend`
+   * configure `src/main/resources/application.properties` with your
+     PostgreSQL credentials and a JWT secret (see sample file in repository).
+   * `mvn spring-boot:run`
+   The server listens on port `8080` by default; API routes are prefixed with
+   `/api`.
+
+2. **Frontend**
+   * `npm install` (run from project root)
+   * adjust `.env` or set `REACT_APP_API_URL` to point at the backend.
+   * `npm start` launches the React development server on port 3000.
+
+### Deployment
+
+* **Frontend** – build with `npm run build` and deploy the `build/` folder to
+  Vercel, Netlify, or a static hosting provider.
+* **Backend** – the Spring Boot JAR can be deployed to Render, AWS Elastic
+  Beanstalk, Kubernetes, etc. PostgreSQL is required for production.
+
+### Security Notes
+
+* Reports are stored anonymously; the only identifier returned to users is a
+  randomly generated tracking token (`UUID`‑based).
+* Admin endpoints are protected with JWTs. Passwords should be hashed using
+  `BCryptPasswordEncoder` and never stored in plaintext.
+* All input is validated using `javax.validation` annotations and controllers
+  reject malformed data.
+* JPA repositories use parameter binding to prevent SQL injection.
+
+Refer to the back‑end source code for controllers, entities and security logic.
+
 ### Deployment
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import AdminLayout from '../../shared/layouts/AdminLayout';
 import api from '../../api';
 import './AdminReports.css';
@@ -10,11 +10,7 @@ export default function AdminReports() {
   const [selectedReport, setSelectedReport] = useState(null);
   const [responseText, setResponseText] = useState('');
 
-  useEffect(() => {
-    fetchReports();
-  }, [filter]);
-
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get(`/admin/reports?status=${filter}`);
@@ -31,7 +27,11 @@ export default function AdminReports() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   const getSeverityColor = (severity) => {
     switch(severity) {

@@ -9,11 +9,11 @@ export default function Signup() {
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    role: 'USER'
+    confirmPassword: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -42,8 +42,10 @@ export default function Signup() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: formData.role
+        role: 'EMPLOYEE'
       });
+
+      console.log('Signup response:', response.data);
 
       const { token, role } = response.data;
       
@@ -51,8 +53,10 @@ export default function Signup() {
       localStorage.setItem('userRole', role);
       localStorage.setItem('userId', response.data.userId);
 
-      navigate('/dashboard');
+      setSuccess(true);
+      setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
+      console.error('Signup error:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
@@ -65,10 +69,11 @@ export default function Signup() {
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-header">
-            <h2>Create Your Account</h2>
-            <p>Join TRINETRA and start reporting securely.</p>
+            <h2>Employee Registration</h2>
+            <p>Sign up to submit and track reports securely.</p>
           </div>
 
+          {success && <div className="alert alert-success">Account created successfully! Redirecting...</div>}
           {error && <div className="alert alert-error">{error}</div>}
 
           <form onSubmit={handleSubmit}>
@@ -96,19 +101,6 @@ export default function Signup() {
                 placeholder="your@email.com"
                 required
               />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Role</label>
-              <select
-                name="role"
-                className="form-select"
-                value={formData.role}
-                onChange={handleChange}
-              >
-                <option value="USER">Employee</option>
-                <option value="ADMIN">Administrator</option>
-              </select>
             </div>
 
             <div className="form-group">
@@ -149,7 +141,7 @@ export default function Signup() {
 
           <div className="auth-footer">
             <p>
-              Already have an account? <a href="/login" className="auth-link">Log in</a>
+              Already have an account? <a href="/login" className="auth-link">Log in as Administrator</a>
             </p>
           </div>
         </div>

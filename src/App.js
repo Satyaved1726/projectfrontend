@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import './styles/globals.css';
 
 // Pages
-import Landing from "./pages/public/Landing";
+import Home from "./Home";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import UserDashboard from "./pages/user/UserDashboard";
@@ -19,17 +19,19 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        {/* User Routes */}
-        <Route path="/dashboard" element={<ProtectedRoute component={UserDashboard} requiredRole={["USER"]} />} />
-        <Route path="/submit-report" element={<ProtectedRoute component={ReportForm} requiredRole={["USER"]} />} />
+        {/* Employee Routes */}
+        <Route path="/dashboard" element={<ProtectedRoute component={UserDashboard} requiredRole={["EMPLOYEE"]} />} />
+        <Route path="/report" element={<ProtectedRoute component={ReportForm} requiredRole={["EMPLOYEE"]} />} />
+        <Route path="/submit-report" element={<ProtectedRoute component={ReportForm} requiredRole={["EMPLOYEE"]} />} />
+        <Route path="/track" element={<Track />} />
         <Route path="/track-report" element={<Track />} />
-        <Route path="/my-reports" element={<ProtectedRoute component={ReportForm} requiredRole={["USER"]} />} />
-        <Route path="/notifications" element={<ProtectedRoute component={UserDashboard} requiredRole={["USER"]} />} />
-        <Route path="/profile" element={<ProtectedRoute component={UserDashboard} requiredRole={["USER"]} />} />
+        <Route path="/my-reports" element={<ProtectedRoute component={ReportForm} requiredRole={["EMPLOYEE"]} />} />
+        <Route path="/notifications" element={<ProtectedRoute component={UserDashboard} requiredRole={["EMPLOYEE"]} />} />
+        <Route path="/profile" element={<ProtectedRoute component={UserDashboard} requiredRole={["EMPLOYEE"]} />} />
 
         {/* Admin Routes */}
         <Route path="/admin-dashboard" element={<ProtectedRoute component={AdminDashboard} requiredRole={["ADMIN"]} />} />
@@ -44,7 +46,6 @@ function App() {
         <Route path="/admin" element={<Navigate replace to="/admin-dashboard" />} />
         <Route path="/reg" element={<Navigate replace to="/signup" />} />
         <Route path="/submit" element={<Navigate replace to="/submit-report" />} />
-        <Route path="/track" element={<Navigate replace to="/track-report" />} />
 
         {/* Catch all */}
         <Route path="*" element={<Navigate replace to="/" />} />

@@ -15,6 +15,7 @@ export default function Navbar() {
   };
 
   const isPublicPage = ['/'].includes(location.pathname);
+  const isAuthPage = ['/login', '/signup'].includes(location.pathname);
 
   return (
     <nav className="navbar">
@@ -31,6 +32,12 @@ export default function Navbar() {
             <li><a href="#security" className="navbar-link">Security</a></li>
             <li><Link to="/login" className="navbar-link">Login</Link></li>
             <li><Link to="/signup" className="btn btn-primary btn-sm">Sign Up</Link></li>
+          </ul>
+        )}
+
+        {isAuthPage && !isLoggedIn && (
+          <ul className="navbar-nav">
+            <li><Link to="/" className="navbar-link">← Home</Link></li>
           </ul>
         )}
 

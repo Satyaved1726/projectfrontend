@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../shared/components/Navbar';
 import api from '../../api';
+import { logError, logInfo, logDebug } from '../../utils/logger';
 import './Auth.css';
 
 export default function Login() {
@@ -11,29 +12,110 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    logInfo('LOGIN_PAGE', 'Login page loaded');
+    
+    // Check if user is already logged in
+    const token = localStorage.getItem('jwt');
+    const userRole = localStorage.getItem('userRole');
+    if (token && userRole === 'ADMIN') {
+      logDebug('LOGIN_PAGE', 'User already logged in, redirecting to admin dashboard');
+      navigate('/admin-dashboard');
+    }
+
+    return () => {
+      logDebug('LOGIN_PAGE', 'Login page unmounted');
+    };
+  }, [navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    logDebug('LOGIN_PAGE', 'Login form submitted', { email });
+    
+    // Validate inputs
+    if (!email.trim()) {
+      const errorMsg = 'Email is required';
+      logError('LOGIN_PAGE', new Error(errorMsg), { field: 'email' });
+      setError(errorMsg);
+      return;
+    }
+
+    if (!password) {
+      const errorMsg = 'Password is required';
+      logError('LOGIN_PAGE', new Error(errorMsg), { field: 'password' });
+      setError(errorMsg);
+      return;
+    }
+
+    if (!email.includes('@')) {
+      const errorMsg = 'Please enter a valid email address';
+      logError('LOGIN_PAGE', new Error(errorMsg), { field: 'email', value: email });
+      setError(errorMsg);
+      return;
+    }
+
     setError('');
     setLoading(true);
+    
+    logInfo('LOGIN_PAGE', 'Attempting authentication', { email, role: 'ADMIN' });
 
     try {
-      const response = await api.post('/auth/login', { email, password });
+      logDebug('LOGIN_PAGE', 'Sending login request', { email });
+      
+      const response = await api.post('/auth/login', { email, password, role: 'ADMIN' });
       const { token, role } = response.data;
       
-      localStorage.setItem('jwt', token);
-      localStorage.setItem('userRole', role);
-      localStorage.setItem('userId', response.data.userId);
-
-      // Redirect based on role
-      if (role === 'ADMIN') {
-        navigate('/admin-dashboard');
-      } else {
-        navigate('/dashboard');
+      logDebug('LOGIN_PAGE', 'Login response received', { role, userId: response.data?.userId });
+      
+      // Verify that only ADMIN role can login
+      if (role !== 'ADMIN') {
+        const errorMsg = 'Only administrators can login here. Employees should use the track report feature.';
+        logError('LOGIN_PAGE', new Error(errorMsg), { 
+          receivedRole: role, 
+          expectedRole: 'ADMIN' 
+        });
+        setError(errorMsg);
+        setLoading(false);
+        return;
       }
+      
+      try {
+        localStorage.setItem('jwt', token);
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('userId', response.data.userId);
+        
+        logInfo('LOGIN_PAGE', 'Login successful and token stored', { 
+          userId: response.data.userId, 
+          role 
+        });
+      } catch (storageError) {
+        logError('LOGIN_PAGE', storageError, { 
+          errorType: 'STORAGE_ERROR',
+          context: 'Failed to store login token in localStorage'
+        });
+        setError('Failed to save session. Please check browser storage settings.');
+        setLoading(false);
+        return;
+      }
+
+      navigate('/admin-dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      const errorMessage = err.response?.data?.message || 'Login failed. Only administrators can access this page.';
+      
+      logError('LOGIN_PAGE', err, {
+        errorType: 'LOGIN_FAILED',
+        email,
+        statusCode: err.response?.status,
+        responseData: err.response?.data,
+        errorMessage,
+        isNetworkError: !err.response
+      });
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
+      logDebug('LOGIN_PAGE', 'Login attempt completed');
     }
   };
 
@@ -86,10 +168,10 @@ export default function Login() {
 
           <div className="auth-footer">
             <p>
-              Don't have an account? <a href="/signup" className="auth-link">Sign up</a>
+              <a href="/track-report" className="auth-link">Track report as employee</a>
             </p>
             <p style={{ marginTop: '1rem' }}>
-              <a href="/track-report" className="auth-link">Track existing report?</a>
+              <a href="/signup" className="auth-link">Register as employee</a>
             </p>
           </div>
         </div>

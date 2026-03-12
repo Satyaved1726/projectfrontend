@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../shared/components/Navbar';
 import api from '../../api';
+import { logError, logInfo, logDebug } from '../../utils/logger';
 import './Auth.css';
 
 export default function Signup() {
@@ -16,6 +17,22 @@ export default function Signup() {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    logInfo('SIGNUP_PAGE', 'Signup page loaded');
+    
+    // Check if user is already logged in
+    const token = localStorage.getItem('jwt');
+    const userRole = localStorage.getItem('userRole');
+    if (token && userRole === 'EMPLOYEE') {
+      logDebug('SIGNUP_PAGE', 'User already logged in, redirecting to dashboard');
+      navigate('/dashboard');
+    }
+
+    return () => {
+      logDebug('SIGNUP_PAGE', 'Signup page unmounted');
+    };
+  }, [navigate]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -24,20 +41,78 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    
+    logDebug('SIGNUP_PAGE', 'Signup form submitted', { email: formData.email, name: formData.name });
+
+    // Validation: Check for empty fields
+    if (!formData.name.trim()) {
+      const errorMsg = 'Full name is required';
+      logError('SIGNUP_PAGE', new Error(errorMsg), { field: 'name' });
+      setError(errorMsg);
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      const errorMsg = 'Email is required';
+      logError('SIGNUP_PAGE', new Error(errorMsg), { field: 'email' });
+      setError(errorMsg);
+      return;
+    }
+
+    if (!formData.email.includes('@')) {
+      const errorMsg = 'Please enter a valid email address';
+      logError('SIGNUP_PAGE', new Error(errorMsg), { field: 'email', value: formData.email });
+      setError(errorMsg);
+      return;
+    }
+
+    if (!formData.password) {
+      const errorMsg = 'Password is required';
+      logError('SIGNUP_PAGE', new Error(errorMsg), { field: 'password' });
+      setError(errorMsg);
+      return;
+    }
+
+    if (!formData.confirmPassword) {
+      const errorMsg = 'Please confirm your password';
+      logError('SIGNUP_PAGE', new Error(errorMsg), { field: 'confirmPassword' });
+      setError(errorMsg);
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      const errorMsg = 'Passwords do not match';
+      logError('SIGNUP_PAGE', new Error(errorMsg), { 
+        field: 'passwordMatch',
+        passwordLength: formData.password.length,
+        confirmPasswordLength: formData.confirmPassword.length
+      });
+      setError(errorMsg);
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      const errorMsg = 'Password must be at least 6 characters';
+      logError('SIGNUP_PAGE', new Error(errorMsg), { 
+        field: 'passwordLength',
+        providedLength: formData.password.length,
+        minRequired: 6
+      });
+      setError(errorMsg);
       return;
     }
 
     setLoading(true);
+    
+    logInfo('SIGNUP_PAGE', 'Starting signup process', { 
+      email: formData.email, 
+      name: formData.name,
+      role: 'EMPLOYEE'
+    });
 
     try {
+      logDebug('SIGNUP_PAGE', 'Sending signup request to server');
+      
       const response = await api.post('/auth/signup', {
         name: formData.name,
         email: formData.email,
@@ -45,21 +120,66 @@ export default function Signup() {
         role: 'EMPLOYEE'
       });
 
-      console.log('Signup response:', response.data);
+      logDebug('SIGNUP_PAGE', 'Signup response received', { 
+        userId: response.data?.userId,
+        role: response.data?.role 
+      });
 
       const { token, role } = response.data;
       
-      localStorage.setItem('jwt', token);
-      localStorage.setItem('userRole', role);
-      localStorage.setItem('userId', response.data.userId);
+      if (!token) {
+        const errorMsg = 'No authentication token received from server';
+        logError('SIGNUP_PAGE', new Error(errorMsg), { 
+          errorType: 'MISSING_TOKEN',
+          responseData: response.data
+        });
+        setError('Signup failed: No authentication token received. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        localStorage.setItem('jwt', token);
+        localStorage.setItem('userRole', role);
+        localStorage.setItem('userId', response.data.userId);
+        
+        logInfo('SIGNUP_PAGE', 'Signup successful and credentials stored', { 
+          userId: response.data.userId, 
+          role 
+        });
+      } catch (storageError) {
+        logError('SIGNUP_PAGE', storageError, { 
+          errorType: 'STORAGE_ERROR',
+          context: 'Failed to store signup token in localStorage'
+        });
+        setError('Failed to save session. Please check browser storage settings.');
+        setLoading(false);
+        return;
+      }
 
       setSuccess(true);
-      setTimeout(() => navigate('/dashboard'), 1500);
+      logInfo('SIGNUP_PAGE', 'Signup successful, redirecting to dashboard');
+      
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
     } catch (err) {
-      console.error('Signup error:', err.response?.data || err.message);
-      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+      const errorMessage = err.response?.data?.message || 'Signup failed. Please try again.';
+      
+      logError('SIGNUP_PAGE', err, {
+        errorType: 'SIGNUP_FAILED',
+        email: formData.email,
+        statusCode: err.response?.status,
+        responseData: err.response?.data,
+        errorMessage,
+        isNetworkError: !err.response,
+        requestPath: '/auth/signup'
+      });
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
+      logDebug('SIGNUP_PAGE', 'Signup attempt completed');
     }
   };
 
